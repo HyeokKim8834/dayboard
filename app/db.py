@@ -32,14 +32,12 @@ def init_db() -> None:
                 done INTEGER DEFAULT 0,
                 created_at TEXT NOT NULL
             );
-
             CREATE TABLE IF NOT EXISTS habits (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
                 color TEXT DEFAULT '#3B82F6',
                 created_at TEXT NOT NULL
             );
-
             CREATE TABLE IF NOT EXISTS habit_logs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 habit_id INTEGER NOT NULL,
@@ -47,7 +45,6 @@ def init_db() -> None:
                 UNIQUE(habit_id, day),
                 FOREIGN KEY(habit_id) REFERENCES habits(id) ON DELETE CASCADE
             );
-
             CREATE TABLE IF NOT EXISTS events (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT NOT NULL,
@@ -55,14 +52,12 @@ def init_db() -> None:
                 start_time TEXT DEFAULT '',
                 notes TEXT DEFAULT ''
             );
-
             CREATE TABLE IF NOT EXISTS journal (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 day TEXT NOT NULL UNIQUE,
                 mood TEXT DEFAULT '',
                 body TEXT DEFAULT ''
             );
-
             CREATE TABLE IF NOT EXISTS pomodoro_sessions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 kind TEXT NOT NULL,
@@ -96,6 +91,21 @@ def list_tasks(include_done: bool = True) -> list[sqlite3.Row]:
     q += " ORDER BY done, due_date IS NULL, due_date, priority DESC, id DESC"
     with connect() as conn:
         return list(conn.execute(q))
+
+
+def list_today_todos() -> list[sqlite3.Row]:
+    day = today_iso()
+    with connect() as conn:
+        return list(
+            conn.execute(
+                """
+                SELECT * FROM tasks
+                WHERE done = 0 AND (due_date = ? OR due_date IS NULL OR due_date = '')
+                ORDER BY due_date IS NULL, priority DESC, id DESC
+                """,
+                (day,),
+            )
+        )
 
 
 def toggle_task(task_id: int) -> None:
