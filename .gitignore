@@ -9,6 +9,8 @@ env/
 *.db
 .DS_Store
 data/*.db
+data/settings.json
+data/*.png
 dist/
 build/
 *.egg-info/
